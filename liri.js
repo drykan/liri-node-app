@@ -6,7 +6,7 @@ var Spotify = require('node-spotify-api');
 var request = require('request');
 var fs = require("fs");
 var keys = require("./keys.js");
-var twitterKeys = Twitter(keys.twitterKeys);
+var twitterKeys = keys.twitterKeys;
 
 
 // user choices
@@ -18,11 +18,11 @@ var doWhatItSays = "do-what-it-says";
 
 
 
-// Twitter input
+// input Vars
 if(userChoice == myTweets) {
     twitterTweets();
 // Spotify input
-}else if(userChoice == spotifyThisSong) {
+} else if(userChoice == spotifyThisSong) {
     spotifySearch(userSearch);
 // Movie input
 } else if( userChoice == movieThis) {
@@ -38,26 +38,33 @@ if(userChoice == myTweets) {
 //twitter function
 function twitterTweets(){
 
+    var client = new Twitter({
+        consumer_key: twitterKeys.consumer_key,
+        consumer_secret: twitterKeys.consumer_secret,
+        access_token_key: twitterKeys.access_token_key,
+        access_token_secret: twitterKeys.access_token_secret, 
+    });
+
     // Setting up my account and 20 tweet limit
     var params = {
         screen_name: 'TheDanielStarks',
         count: '20',
-        trim_user: false,
     }
 
-        var client = new Twitter({
-            consumer_key: keys.twitterKeys.consumer_key,
-            consumer_secret: keys.twitterKeys.consumer_secret,
-            access_token_key: keys.twitterKeys.access_token_key,
-            access_token_secret: keys.twitterKeys.access_token_secret, 
-        });
+    //get the tweets and display them
+    client.get('statuses/user_timeline', params, function(error, tweets, response) {
+        if(!error){
+            for(tweet in tweets) {
 
-    // get the tweets and display them
-    client.get('statuses/user_timeline', params, function(error, tweets, response){
+                var dateAndTime = new Date(tweets[tweet].created_at); //set up tweet dates
 
-        console.log(tweets);
-        console.log(response);
+                console.log("Tweet #: " + (parseInt(tweet)+1));     //tweet #
+                console.log(dateAndTime.toString().slice(0, 24));   //tweet date
+                console.log(tweets[tweet].text);                    //tweet text
+                console.log(" ");                                   //separate tweets
 
+            }
+        } 
     })
 }
 
@@ -76,6 +83,8 @@ function spotifySearch(userSearch) {
     spotify.search({ type: "track", query: userSearch }, function(err, data) {
         if(!err){
             var songSearch = data.tracks.items;
+
+            // only show the 1st record of the song
             for (var i = 0; i < 1; i++) {
                 if (songSearch[i]) {
                     console.log("Artist: " + songSearch[i].artists[0].name);
@@ -109,10 +118,11 @@ function moviesSearch(userSearch){
         if(err) throw err;
 
         var readableData = JSON.parse(body);
+
         console.log('Title: ' + readableData.Title);
         console.log('Year: ' + readableData.Year);
         console.log('imdbRating: ' + readableData.imdbRating);
-        console.log('Rotten Tomatoes Rating: ' + readableData.tomatoRating);
+        console.log('Rotten Tomatoes Rating: ' + readableData.Ratings[1].Value);
         console.log('Country: ' + readableData.Country);
         console.log('Language: ' + readableData.Language);
         console.log('Plot: ' + readableData.Plot);
@@ -128,7 +138,7 @@ function doWhat(userSearch) {
         
         var things = data.split(',');
         
-        if(things[0] === songs){
+        if(things[0] === spotifyThisSong){
             userSearch = things[1];
             spotifySearch(userSearch);
         }
