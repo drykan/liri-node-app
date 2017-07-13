@@ -136,10 +136,10 @@ function doWhat(userSearch) {
     
     fs.readFile('random.txt', 'utf-8', function(err, data){
         
-        var things = data.split(',');
+        var searchData = data.split(',');
         
-        if(things[0] === spotifyThisSong){
-            userSearch = things[1];
+        if(searchData[0] === spotifyThisSong){
+            userSearch = searchData[1];
             spotifySearch(userSearch);
         }
     })
